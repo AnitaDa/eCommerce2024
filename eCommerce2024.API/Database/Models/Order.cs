@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace eCommerce2024.API.Database;
+namespace eCommerce2024.API.Database.Models;
 
 public partial class Order
 {
@@ -23,5 +23,5 @@ public partial class Order
 
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
-    public virtual Aspnetuser User { get; set; } = null!;
+    public virtual CustomUser User { get; set; } = null!;
 }
