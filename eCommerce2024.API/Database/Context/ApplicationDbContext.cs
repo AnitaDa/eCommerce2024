@@ -14,7 +14,6 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
         : base(options)
     {
     }
-    public virtual DbSet<OrdersUser> OrdersUsers {  get; set; }
     public virtual DbSet<Category> Categories { get; set; }
 
     public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
@@ -33,6 +32,7 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
