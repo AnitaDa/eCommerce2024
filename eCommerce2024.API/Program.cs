@@ -61,14 +61,14 @@ builder.Services.AddAuthentication().
 builder.Services.AddAuthorization();
 
 //Configure DbContext
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 });
 //Add IdentityCore
 builder.Services.AddIdentityCore<CustomUser>()
     .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager<SignInManager<CustomUser>>()
     .AddDefaultTokenProviders();
 
