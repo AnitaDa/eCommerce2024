@@ -11,7 +11,7 @@ using eCommerce2024.API.Database.Context;
 
 namespace eCommerce2024.API.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20240326155707_IdentityMigration")]
     partial class IdentityMigration
     {
