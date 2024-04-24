@@ -1,6 +1,9 @@
-﻿using eCommerce2024.API.Database.Models;
+﻿using System;
+using System.Collections.Generic;
+using eCommerce2024.API.Database.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace eCommerce2024.API.Database.Context;
 
@@ -14,15 +17,16 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
         : base(options)
     {
     }
+
     public virtual DbSet<Category> Categories { get; set; }
 
-    public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
+    public virtual DbSet<Customer> Customers { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
 
-    public virtual DbSet<Orderitem> Orderitems { get; set; }
+    public virtual DbSet<Orderdetail> Orderdetails { get; set; }
 
-    public virtual DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<Paymentmethod> Paymentmethods { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
 
@@ -37,32 +41,38 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
 
+
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(e => e.CategoryId).HasName("PRIMARY");
 
             entity.ToTable("categories");
 
-            entity.HasIndex(e => e.ParentCategoryId, "ParentCategoryID");
-
-            entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
-            entity.Property(e => e.Description).HasColumnType("text");
-            entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.ParentCategoryId).HasColumnName("ParentCategoryID");
-
-            entity.HasOne(d => d.ParentCategory).WithMany(p => p.InverseParentCategory)
-                .HasForeignKey(d => d.ParentCategoryId)
-                .HasConstraintName("categories_ibfk_1");
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Efmigrationshistory>(entity =>
+        modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.MigrationId).HasName("PRIMARY");
+            entity.HasKey(e => e.CustomerId).HasName("PRIMARY");
 
-            entity.ToTable("__efmigrationshistory");
+            entity.ToTable("customers");
 
-            entity.Property(e => e.MigrationId).HasMaxLength(150);
-            entity.Property(e => e.ProductVersion).HasMaxLength(32);
+            entity.HasIndex(e => e.UserId, "UserId");
+
+            entity.Property(e => e.City).HasMaxLength(100);
+            entity.Property(e => e.Country).HasMaxLength(100);
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.FirstName).HasMaxLength(255);
+            entity.Property(e => e.LastName).HasMaxLength(255);
+            entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.PostalCode).HasMaxLength(20);
+            entity.Property(e => e.Street).HasMaxLength(255);
+            entity.Property(e => e.UserId).HasMaxLength(100);
+
+            entity.HasOne(d => d.User).WithMany(p => p.Customers)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("customers_ibfk_1");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -71,77 +81,51 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
             entity.ToTable("orders");
 
-            entity.HasIndex(e => e.UserId, "UserID");
+            entity.HasIndex(e => e.CustomerId, "CustomerId");
 
-            entity.Property(e => e.OrderId).HasColumnName("OrderID");
-            entity.Property(e => e.OrderDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp");
-            entity.Property(e => e.OrderStatus)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'pending'");
-            entity.Property(e => e.PaymentStatus)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'pending'");
-            entity.Property(e => e.ShippingAddress).HasMaxLength(255);
             entity.Property(e => e.TotalAmount).HasPrecision(10, 2);
-            entity.Property(e => e.UserId).HasColumnName("UserID");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+            entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.CustomerId)
                 .HasConstraintName("orders_ibfk_1");
         });
 
-        modelBuilder.Entity<Orderitem>(entity =>
+        modelBuilder.Entity<Orderdetail>(entity =>
         {
-            entity.HasKey(e => e.OrderItemId).HasName("PRIMARY");
+            entity.HasKey(e => e.OrderDetailId).HasName("PRIMARY");
 
-            entity.ToTable("orderitems");
+            entity.ToTable("orderdetails");
 
-            entity.HasIndex(e => e.OrderId, "OrderID");
+            entity.HasIndex(e => e.OrderId, "OrderId");
 
-            entity.HasIndex(e => e.ProductId, "ProductID");
+            entity.HasIndex(e => e.ProductId, "ProductId");
 
-            entity.Property(e => e.OrderItemId).HasColumnName("OrderItemID");
-            entity.Property(e => e.OrderId).HasColumnName("OrderID");
-            entity.Property(e => e.ProductId).HasColumnName("ProductID");
-            entity.Property(e => e.Subtotal).HasPrecision(10, 2);
+            entity.Property(e => e.UnitPrice).HasPrecision(10, 2);
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Orderitems)
+            entity.HasOne(d => d.Order).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("orderitems_ibfk_1");
+                .HasConstraintName("orderdetails_ibfk_1");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.Orderitems)
+            entity.HasOne(d => d.Product).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("orderitems_ibfk_2");
+                .HasConstraintName("orderdetails_ibfk_2");
         });
 
-        modelBuilder.Entity<Payment>(entity =>
+        modelBuilder.Entity<Paymentmethod>(entity =>
         {
-            entity.HasKey(e => e.PaymentId).HasName("PRIMARY");
+            entity.HasKey(e => e.PaymentMethodId).HasName("PRIMARY");
 
-            entity.ToTable("payment");
+            entity.ToTable("paymentmethods");
 
-            entity.HasIndex(e => e.OrderId, "OrderID");
+            entity.HasIndex(e => e.CustomerId, "CustomerId");
 
-            entity.Property(e => e.PaymentId).HasColumnName("PaymentID");
-            entity.Property(e => e.Amount).HasPrecision(10, 2);
-            entity.Property(e => e.OrderId).HasColumnName("OrderID");
-            entity.Property(e => e.PaymentDate)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp");
-            entity.Property(e => e.PaymentMethod).HasMaxLength(50);
-            entity.Property(e => e.PaymentStatus)
-                .HasMaxLength(20)
-                .HasDefaultValueSql("'pending'");
-            entity.Property(e => e.TransactionId)
-                .HasMaxLength(100)
-                .HasColumnName("TransactionID");
+            entity.Property(e => e.CardNumber).HasMaxLength(20);
+            entity.Property(e => e.Cvv).HasMaxLength(4);
+            entity.Property(e => e.MethodType).HasMaxLength(100);
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
-                .HasForeignKey(d => d.OrderId)
-                .HasConstraintName("payment_ibfk_1");
+            entity.HasOne(d => d.Customer).WithMany(p => p.Paymentmethods)
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("paymentmethods_ibfk_1");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -150,14 +134,15 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
             entity.ToTable("products");
 
-            entity.Property(e => e.ProductId).HasColumnName("ProductID");
-            entity.Property(e => e.Category).HasMaxLength(50);
+            entity.HasIndex(e => e.CategoryId, "CategoryId");
+
             entity.Property(e => e.Description).HasColumnType("text");
-            entity.Property(e => e.ImageUrl)
-                .HasMaxLength(255)
-                .HasColumnName("ImageURL");
-            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Price).HasPrecision(10, 2);
+
+            entity.HasOne(d => d.Category).WithMany(p => p.Products)
+                .HasForeignKey(d => d.CategoryId)
+                .HasConstraintName("products_ibfk_1");
         });
 
         OnModelCreatingPartial(modelBuilder);
