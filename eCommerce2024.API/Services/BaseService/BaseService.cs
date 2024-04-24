@@ -4,7 +4,7 @@ using eCommerce2024.API.Database.Context;
 
 namespace eCommerce2024.API.Services.BaseService
 {
-    public class BaseService<TDatabases, TModel, TUpdate, TInsert> : IBaseService<TModel, TUpdate, TInsert> where TDatabases : class
+    public class BaseService<TDatabases, TModel, TUpdate, TInsert> : IBaseService<TDatabases, TModel, TUpdate, TInsert> where TDatabases : class
     {
         private readonly ApplicationDbContext _appDbContext;
         private readonly IMapper _mapper;

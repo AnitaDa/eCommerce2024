@@ -21,7 +21,7 @@ namespace eCommerce2024.API.Services.UserService
         public async Task<string> GenerateJWTToken(CustomUser user)
         {
             var claims = new List<Claim> {
-             new Claim(ClaimTypes.Name, user.FirstName + " " + user.LastName),
+             new Claim(ClaimTypes.Name, user.UserName),
              new Claim(ClaimTypes.Email, user.Email)
             };
             var userRoles = await _userManager.GetRolesAsync(user);

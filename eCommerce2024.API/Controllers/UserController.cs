@@ -67,15 +67,10 @@ namespace eCommerce2024.API.Controllers
             {
                 var user = new CustomUser
                 {
-                    FirstName = newUser.FirstName,
-                    LastName = newUser.LastName,
+                  
                     UserName = newUser.UserName,
                     Email = newUser.EmailAddress,
-                    Street = newUser.Street,
-                    City = newUser.City,
-                    Country = newUser.Country,
                     PhoneNumber = newUser.PhoneNumber,
-                    DateOfBirth = newUser.DateOfBirth
                 };
                 var doesUserExist = await _userManager.FindByEmailAsync(user.Email);
                 if (doesUserExist is null) {

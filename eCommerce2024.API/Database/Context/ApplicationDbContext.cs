@@ -22,6 +22,8 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
     public virtual DbSet<Customer> Customers { get; set; }
 
+    public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<Orderdetail> Orderdetails { get; set; }
@@ -36,12 +38,9 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
-
-
 
         modelBuilder.Entity<Category>(entity =>
         {
@@ -73,6 +72,16 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
             entity.HasOne(d => d.User).WithMany(p => p.Customers)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("customers_ibfk_1");
+        });
+
+        modelBuilder.Entity<Efmigrationshistory>(entity =>
+        {
+            entity.HasKey(e => e.MigrationId).HasName("PRIMARY");
+
+            entity.ToTable("__efmigrationshistory");
+
+            entity.Property(e => e.MigrationId).HasMaxLength(150);
+            entity.Property(e => e.ProductVersion).HasMaxLength(32);
         });
 
         modelBuilder.Entity<Order>(entity =>
