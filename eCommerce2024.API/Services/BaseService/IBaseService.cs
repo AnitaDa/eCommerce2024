@@ -1,6 +1,6 @@
 ﻿namespace eCommerce2024.API
 {
-    public interface IBaseService<TDatabase, TModel, TUpdate, TInsert>
+    public interface IBaseService<TModel, TUpdate, TInsert>
     {
         public List<TModel> GetAll();
         public TModel GetById(int id);

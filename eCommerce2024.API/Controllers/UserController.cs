@@ -78,7 +78,7 @@ namespace eCommerce2024.API.Controllers
                     if (createdUser.Succeeded)
                     {
                         await _userManager.AddPasswordAsync(user, newUser.Password);
-                        await _userManager.AddToRoleAsync(user, "User");
+                        await _userManager.AddToRoleAsync(user, "Admin");
                         return Ok(UserStatusResponse.UserIsCreated);
                     }
                     else

@@ -1,10 +1,13 @@
+using eCommerce2024.API;
 using eCommerce2024.API.Database.Context;
 using eCommerce2024.API.Database.Models;
+using eCommerce2024.API.Services.ProductService;
 using eCommerce2024.API.Services.UserService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Models.Product;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,7 +75,10 @@ builder.Services.AddIdentityCore<CustomUser>()
     .AddSignInManager<SignInManager<CustomUser>>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
+
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 
