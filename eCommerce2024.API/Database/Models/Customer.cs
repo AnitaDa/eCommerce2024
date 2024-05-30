@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using eCommerce2024.API.Models;
 
 namespace eCommerce2024.API.Database.Models;
 
 public partial class Customer
 {
-    public int CustomerId { get; set; }
+    public int Id { get; set; }
 
     public string? UserId { get; set; }
 
@@ -24,6 +24,8 @@ public partial class Customer
     public string? Country { get; set; }
 
     public string? PostalCode { get; set; }
+
+    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 

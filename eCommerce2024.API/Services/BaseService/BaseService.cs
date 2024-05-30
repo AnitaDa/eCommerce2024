@@ -1,6 +1,9 @@
 ﻿
 using AutoMapper;
 using eCommerce2024.API.Database.Context;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce2024.API.Services.BaseService
 {
@@ -22,46 +25,80 @@ namespace eCommerce2024.API.Services.BaseService
 
         public virtual List<TModel> GetAll()
         {
-            var list = _appDbContext.Set<TDb>().ToList();
-            return _mapper.Map<List<TModel>>(list);
+            try
+            {
+                var list = _appDbContext.Set<TDb>().ToList();
+                return _mapper.Map<List<TModel>>(list);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public virtual TModel GetById(int id)
         {
-            var entity = _appDbContext.Set<TDb>().Find(id);
-            return _mapper.Map<TModel>(entity);
+            try
+            {
+                var entity = _appDbContext.Set<TDb>().Find(id);
+                if(entity is not null)
+                    return _mapper.Map<TModel>(entity);
+                    throw new Exception($"Object with ID = {id} does not exist!");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
-
         public virtual TModel Insert(TInsert insert)
         {
-            var mappedObj = _mapper.Map<TDb>(insert);
-            var insertedObj = _appDbContext.Set<TDb>().Add(mappedObj);
-            _appDbContext.SaveChanges();
-            return _mapper.Map<TModel>(insertedObj);
+            try
+            {
+                var mappedObj = _mapper.Map<TDb>(insert);
+                _appDbContext.Set<TDb>().Add(mappedObj);
+                _appDbContext.SaveChanges();
+                return _mapper.Map<TModel>(mappedObj);
+
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public virtual TModel Update(int id, TUpdate update)
         {
-            var entity = _appDbContext.Set<TDb>().Find(id);
+            try
+            {
+                var entity = _appDbContext.Set<TDb>().Find(id);
 
-            _mapper.Map(entity, update);
-            _appDbContext.SaveChanges();
-            return _mapper.Map<TModel>(entity);
+                _mapper.Map(update, entity);
+                _appDbContext.SaveChanges();
+                return _mapper.Map<TModel>(entity);
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public virtual bool Delete(int id)
         {
-            if (id > 0)
+            try
             {
-                var entity = _appDbContext.Set<TDb>().Find(id);
-                if (entity is not null)
+                if (id > 0)
                 {
-                    _appDbContext.Set<TDb>().Remove(entity);
-                    _appDbContext.SaveChanges();
+                    var entity = _appDbContext.Set<TDb>().Find(id);
+                    if (entity is not null)
+                    {
+                        _appDbContext.Set<TDb>().Remove(entity);
+                        _appDbContext.SaveChanges();
+                    }
+                    return true;
                 }
-                return true;
+                return false;
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.ToString());
             }
-            return false;
         }
     }
 }

@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace eCommerce2024.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+   // [Authorize(AuthenticationSchemes ="Bearer")]
     public class BaseController<TDatabase, TModel, TInsert, TUpdate> : ControllerBase 
         where TDatabase : class
         where TModel : class
@@ -12,37 +13,74 @@ namespace eCommerce2024.API.Controllers
         where TUpdate : class
     {
         private readonly IBaseService<TModel, TUpdate, TInsert> _baseService;
+
         public BaseController(IBaseService<TModel, TUpdate, TInsert> baseService)
         {
             _baseService = baseService;
         }
 
         [HttpGet]
-        public List<TModel> GetAll() {
-          return _baseService.GetAll();
+        public ActionResult<List<TModel>> GetAll() {
+          
+            try
+            {
+                return _baseService.GetAll();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("{Id}")]
-        public TModel GetById(int Id)
+        public ActionResult<TModel> GetById(int Id)
         {
-            return _baseService.GetById(Id);
+            try{
+                return _baseService.GetById(Id);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost]
-        public TModel Insert(TInsert insert)
+        public ActionResult<TModel> Insert(TInsert insert)
         {
-            return _baseService.Insert(insert);
+            try
+            {
+                var insertedObject = _baseService.Insert(insert);
+                return insertedObject;
+            }catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{Id}")]
-        public TModel Update(int Id, TUpdate update)
+        public ActionResult<TModel> Update(int Id, TUpdate update)
         {
-            return _baseService.Update(Id, update);
+            try
+            {
+                return _baseService.Update(Id, update);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpDelete("{Id}")]
-        public bool DeleteById(int Id) { 
-            return _baseService.Delete(Id);
+        public ActionResult<bool> DeleteById(int Id) { 
+            
+            try
+            {
+                return _baseService.Delete(Id);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

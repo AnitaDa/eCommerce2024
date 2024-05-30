@@ -1,6 +1,9 @@
 using eCommerce2024.API;
 using eCommerce2024.API.Database.Context;
 using eCommerce2024.API.Database.Models;
+using eCommerce2024.API.Services.CartService;
+using eCommerce2024.API.Services.CustomerService;
+using eCommerce2024.API.Services.OrderService;
 using eCommerce2024.API.Services.ProductService;
 using eCommerce2024.API.Services.UserService;
 using Microsoft.AspNetCore.Identity;
@@ -52,11 +55,13 @@ builder.Services.AddAuthentication().
         {
             ValidateIssuer = true,
             ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
             RequireExpirationTime = true,
             ValidateLifetime = true,
             SaveSigninToken = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AuthSettings:Key"])),
-            ValidateIssuerSigningKey = true
+            ValidAudience = builder.Configuration["AuthSettings:Aud"],
+            ValidIssuer = builder.Configuration["AuthSettings:Iss"]    
         };
     });
 
@@ -79,6 +84,9 @@ builder.Services.AddAutoMapper(typeof(ApplicationDbContext));
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
