@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using eCommerce2024.API.Database.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using eCommerce2024.API.Models;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Scaffolding.Internal;
 
 namespace eCommerce2024.API.Database.Context;
 
-public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
+public partial class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext()
     {
@@ -18,7 +18,13 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
     {
     }
 
+    public virtual DbSet<Cart> Carts { get; set; }
+
+    public virtual DbSet<Cartitem> Cartitems { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
+
+    public virtual DbSet<Color> Colors { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
 
@@ -34,27 +40,77 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=127.0.0.1,3306;user=root;password=test;database=ecommerce", ServerVersion.Parse("8.0.29-mysql"));
+        => optionsBuilder.UseMySql("server=127.0.0.1,3306;user=root;password=test;database=ecommerce", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.29-mysql"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
         modelBuilder
             .UseCollation("utf8mb4_0900_ai_ci")
             .HasCharSet("utf8mb4");
 
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("cart");
+
+            entity.HasIndex(e => e.CustomerId, "CustomerId");
+
+            entity.Property(e => e.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.Carts)
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("cart_ibfk_1");
+        });
+
+        modelBuilder.Entity<Cartitem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("cartitems");
+
+            entity.HasIndex(e => e.CartId, "CartId");
+
+            entity.HasIndex(e => e.ProductId, "ProductId");
+
+            entity.Property(e => e.Price).HasPrecision(10, 2);
+
+            entity.HasOne(d => d.Cart).WithMany(p => p.Cartitems)
+                .HasForeignKey(d => d.CartId)
+                .HasConstraintName("cartitems_ibfk_1");
+
+            entity.HasOne(d => d.Product).WithMany(p => p.Cartitems)
+                .HasForeignKey(d => d.ProductId)
+                .HasConstraintName("cartitems_ibfk_2");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("categories");
 
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<Color>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("colors");
+
+            entity.HasIndex(e => e.Name, "name").IsUnique();
+
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+        });
+
         modelBuilder.Entity<Customer>(entity =>
         {
-            entity.HasKey(e => e.CustomerId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("customers");
 
@@ -87,12 +143,13 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("orders");
 
             entity.HasIndex(e => e.CustomerId, "CustomerId");
 
+            entity.Property(e => e.OrderDate).HasDefaultValueSql("now()");
             entity.Property(e => e.TotalAmount).HasPrecision(10, 2);
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Orders)
@@ -102,7 +159,7 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
         modelBuilder.Entity<Orderdetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("orderdetails");
 
@@ -110,7 +167,13 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
             entity.HasIndex(e => e.ProductId, "ProductId");
 
+            entity.HasIndex(e => e.ColorId, "fk_colorId");
+
             entity.Property(e => e.UnitPrice).HasPrecision(10, 2);
+
+            entity.HasOne(d => d.Color).WithMany(p => p.Orderdetails)
+                .HasForeignKey(d => d.ColorId)
+                .HasConstraintName("fk_colorId");
 
             entity.HasOne(d => d.Order).WithMany(p => p.Orderdetails)
                 .HasForeignKey(d => d.OrderId)
@@ -140,12 +203,13 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("products");
 
             entity.HasIndex(e => e.CategoryId, "CategoryId");
 
+            entity.Property(e => e.DateAdded).HasDefaultValueSql("curdate()");
             entity.Property(e => e.Description).HasColumnType("text");
             entity.Property(e => e.Name).HasMaxLength(255);
             entity.Property(e => e.Price).HasPrecision(10, 2);
@@ -153,6 +217,26 @@ public partial class ApplicationDbContext : IdentityDbContext<CustomUser>
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
                 .HasConstraintName("products_ibfk_1");
+
+            entity.HasMany(d => d.Colors).WithMany(p => p.Products)
+                .UsingEntity<Dictionary<string, object>>(
+                    "Productcolor",
+                    r => r.HasOne<Color>().WithMany()
+                        .HasForeignKey("ColorId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("productcolors_ibfk_2"),
+                    l => l.HasOne<Product>().WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("productcolors_ibfk_1"),
+                    j =>
+                    {
+                        j.HasKey("ProductId", "ColorId")
+                            .HasName("PRIMARY")
+                            .HasAnnotation("MySql:IndexPrefixLength", new[] { 0, 0 });
+                        j.ToTable("productcolors");
+                        j.HasIndex(new[] { "ColorId" }, "ColorId");
+                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

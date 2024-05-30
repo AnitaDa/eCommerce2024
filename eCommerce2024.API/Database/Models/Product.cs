@@ -5,7 +5,7 @@ namespace eCommerce2024.API.Database.Models;
 
 public partial class Product
 {
-    public int ProductId { get; set; }
+    public int Id { get; set; }
 
     public string? Name { get; set; }
 
@@ -19,7 +19,11 @@ public partial class Product
 
     public DateOnly? DateAdded { get; set; }
 
+    public virtual ICollection<Cartitem> Cartitems { get; set; } = new List<Cartitem>();
+
     public virtual Category? Category { get; set; }
 
     public virtual ICollection<Orderdetail> Orderdetails { get; set; } = new List<Orderdetail>();
+
+    public virtual ICollection<Color> Colors { get; set; } = new List<Color>();
 }

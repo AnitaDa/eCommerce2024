@@ -6,5 +6,6 @@ namespace eCommerce2024.API.Services.UserService
     public interface IUserService
     {
         public Task<string> GenerateJWTToken(CustomUser user);
+        public string GetCurrentLoggedUser();
     }
 }
